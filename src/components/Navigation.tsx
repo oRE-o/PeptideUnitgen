@@ -2,13 +2,17 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, PackageOpen, FlaskConical, PlusCircle, Settings, Download, Upload } from 'lucide-react';
 import { useAppStore } from '../store';
 import { useTranslation } from '../i18n';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function Navigation() {
   const location = useLocation();
   const { loadPreset, units, items, setLanguage } = useAppStore();
   const { t, language } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   const handleExport = () => {
     const preset = { version: '1.0', units, items };
