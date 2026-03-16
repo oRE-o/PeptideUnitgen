@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/* Enable class-based dark mode toggle in Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@source "./index.html";
+@source "./src/**/*.{js,ts,jsx,tsx}";
+
+@theme {
+  --font-sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 font-sans antialiased min-h-screen m-0 p-0 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-300;
+}
