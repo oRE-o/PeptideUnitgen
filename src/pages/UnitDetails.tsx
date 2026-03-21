@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import type { CardStats } from '../types';
-import { HeartPulse, Swords, Shield, Zap, RefreshCw, Sparkles, Image as ImageIcon, ArrowLeft, Edit } from 'lucide-react';
+import { HeartPulse, Swords, Shield, Zap, RefreshCw, Sparkles, Image as ImageIcon, ArrowLeft, Edit, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import HexGrid from '../components/HexGrid';
 
 export default function UnitDetails() {
@@ -12,9 +12,25 @@ export default function UnitDetails() {
 
   const unit = units.find(u => u.id === id);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const images = unit?.images?.length ? unit.images : (unit?.image ? [unit.image] : []);
   const activeImage = images.length > 0 ? images[activeImageIdx] : null;
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') {
+        setActiveImageIdx(prev => (prev < images.length - 1 ? prev + 1 : prev));
+      } else if (e.key === 'ArrowLeft') {
+        setActiveImageIdx(prev => (prev > 0 ? prev - 1 : prev));
+      } else if (e.key === 'Escape') {
+        setIsModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen, images.length]);
 
   if (!unit) {
     return (
@@ -55,12 +71,24 @@ export default function UnitDetails() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Side: Images */}
         <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-4">
-          <div className="w-full aspect-square bg-slate-50 dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm flex items-center justify-center">
-            {activeImage ? (
-              <img src={activeImage} alt={unit.name} className="w-full h-full object-cover" />
-            ) : (
-              <ImageIcon className="w-24 h-24 text-slate-300 dark:text-slate-700" />
-            )}
+          <div className="flex flex-col items-center">
+            <button 
+              type="button" 
+              onClick={() => { if(activeImage) setIsModalOpen(true); }}
+              className="w-full aspect-square bg-slate-50 dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm flex items-center justify-center cursor-pointer group hover:border-blue-500/50 transition-colors relative"
+            >
+              {activeImage ? (
+                <>
+                  <img src={activeImage} alt={unit.name} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
+                </>
+              ) : (
+                <ImageIcon className="w-24 h-24 text-slate-300 dark:text-slate-700" />
+              )}
+            </button>
+            <p className="mt-3 text-sm font-bold text-slate-400 dark:text-slate-500 select-none">
+              👆 사진을 눌러 자세히 볼 수 있습니다
+            </p>
           </div>
           
           {images.length > 1 && (
@@ -138,6 +166,45 @@ export default function UnitDetails() {
           </div>
         </div>
       </div>
+
+      {/* Fullscreen Image Modal */}
+      {isModalOpen && activeImage && (
+        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-200">
+          <button 
+            type="button" 
+            onClick={() => setIsModalOpen(false)}
+            className="absolute top-6 right-6 p-3 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-colors z-[61]"
+          >
+            <X className="w-8 h-8" />
+          </button>
+          
+          {images.length > 1 && activeImageIdx > 0 && (
+             <button 
+               type="button"
+               onClick={() => setActiveImageIdx(prev => prev - 1)}
+               className="absolute left-6 top-1/2 -translate-y-1/2 p-4 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-colors z-[61]"
+             >
+               <ChevronLeft className="w-12 h-12" />
+             </button>
+          )}
+
+          <img 
+            src={activeImage} 
+            alt="Fullscreen Detail" 
+            className="w-full h-full max-w-7xl object-contain p-4 md:p-12 animate-in zoom-in-95 duration-300" 
+          />
+
+          {images.length > 1 && activeImageIdx < images.length - 1 && (
+             <button 
+               type="button"
+               onClick={() => setActiveImageIdx(prev => prev + 1)}
+               className="absolute right-6 top-1/2 -translate-y-1/2 p-4 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-colors z-[61]"
+             >
+               <ChevronRight className="w-12 h-12" />
+             </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
