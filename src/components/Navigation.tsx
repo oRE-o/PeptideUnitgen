@@ -3,6 +3,7 @@ import { Home, PackageOpen, FlaskConical, PlusCircle, Settings, Download, Upload
 import { useAppStore } from '../store';
 import { useTranslation } from '../i18n';
 import { useEffect, useRef } from 'react';
+import { exportPresetToZip, importPresetFromZip } from '../utils/zipUtils';
 
 export default function Navigation() {
   const location = useLocation();
@@ -14,36 +15,56 @@ export default function Navigation() {
     document.documentElement.lang = language;
   }, [language]);
 
-  const handleExport = () => {
-    const preset = { version: '1.0', units, items };
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(preset, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href",     dataStr);
-    downloadAnchorNode.setAttribute("download", "peptide_preset.json");
-    document.body.appendChild(downloadAnchorNode); // required for firefox
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
+  const handleExport = async () => {
+    try {
+      const preset = { version: '1.0', units, items };
+      const blob = await exportPresetToZip(preset);
+      const url = URL.createObjectURL(blob);
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", url);
+      downloadAnchorNode.setAttribute("download", "peptide_preset.zip");
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert("Export failed.");
+    }
   };
 
-  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const preset = JSON.parse(event.target?.result as string);
-        if (preset && preset.version) {
+    try {
+      if (file.name.endsWith('.json')) {
+         // Legacy JSON import
+         const reader = new FileReader();
+         reader.onload = (event) => {
+           try {
+             const preset = JSON.parse(event.target?.result as string);
+             if (preset && preset.version) {
+               loadPreset(preset);
+               alert(t('nav.successLoad'));
+             }
+           } catch (e) {}
+         };
+         reader.readAsText(file);
+      } else if (file.name.endsWith('.zip')) {
+         const preset = await importPresetFromZip(file);
+         if (preset && preset.version) {
            loadPreset(preset);
            alert(t('nav.successLoad'));
-        } else {
+         } else {
            alert(t('nav.failLoad'));
-        }
-      } catch (err) {
-        alert(t('nav.errorLoad'));
+         }
       }
-    };
-    reader.readAsText(file);
+    } catch (err) {
+      console.error(err);
+      alert(t('nav.errorLoad'));
+    }
+    
     if(fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -165,7 +186,7 @@ export default function Navigation() {
                 <span className="pointer-events-none">{t('nav.import')}</span>
                 <input 
                   type="file" 
-                  accept=".json" 
+                  accept=".json,.zip" 
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" 
                   ref={fileInputRef} 
                   onChange={handleImport} 

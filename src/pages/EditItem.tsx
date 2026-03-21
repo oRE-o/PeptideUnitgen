@@ -4,6 +4,7 @@ import { useAppStore } from '../store';
 import { useTranslation } from '../i18n';
 import type { AminoItem, CardStats, Buff } from '../types';
 import { Save, Trash2, ArrowLeft, Plus, Image as ImageIcon } from 'lucide-react';
+import { compressImage } from '../utils/imageUtils';
 import { useRef } from 'react';
 
 export default function EditItem() {
@@ -49,14 +50,15 @@ export default function EditItem() {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, image: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressedBase64 = await compressImage(file);
+        setFormData(prev => ({ ...prev, image: compressedBase64 }));
+      } catch (err) {
+        console.error("Error compressing image", err);
+      }
     }
   };
 

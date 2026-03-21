@@ -4,6 +4,7 @@ import { useAppStore } from '../store';
 import { useTranslation } from '../i18n';
 import type { AminoUnit, CardStats, AttackType } from '../types';
 import { Save, Trash2, ArrowLeft, Hexagon, ChevronLeft, ChevronRight, X, Plus } from 'lucide-react';
+import { compressImage } from '../utils/imageUtils';
 import HexGrid from '../components/HexGrid';
 import { useRef } from 'react';
 
@@ -90,19 +91,23 @@ export default function EditUnit() {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => {
-          const updatedImages = [...(prev.images || []), reader.result as string];
-          return { ...prev, images: updatedImages, image: updatedImages[0] };
-        });
-      };
-      reader.readAsDataURL(file);
+    const newImages: string[] = [];
+    for (const file of Array.from(files)) {
+      try {
+        const compressedBase64 = await compressImage(file);
+        newImages.push(compressedBase64);
+      } catch (err) {
+        console.error("Error compressing image", err);
+      }
+    }
+
+    setFormData(prev => {
+      const updatedImages = [...(prev.images || []), ...newImages];
+      return { ...prev, images: updatedImages, image: updatedImages[0] };
     });
     
     if (fileInputRef.current) fileInputRef.current.value = '';

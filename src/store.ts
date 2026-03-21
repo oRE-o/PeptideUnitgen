@@ -1,5 +1,19 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import type { StateStorage } from 'zustand/middleware';
+import { get, set, del } from 'idb-keyval';
+
+const idbStorage: StateStorage = {
+  getItem: async (name: string): Promise<string | null> => {
+    return (await get(name)) || null;
+  },
+  setItem: async (name: string, value: string): Promise<void> => {
+    await set(name, value);
+  },
+  removeItem: async (name: string): Promise<void> => {
+    await del(name);
+  },
+};
 import type { AminoUnit, AminoItem, Preset } from './types';
 
 interface AppState {
@@ -78,6 +92,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'peptide-unitgen-storage',
+      storage: createJSONStorage(() => idbStorage),
     }
   )
 );
