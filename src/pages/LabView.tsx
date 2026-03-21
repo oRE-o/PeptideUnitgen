@@ -141,7 +141,7 @@ export default function LabView() {
                 className="w-full flex items-center p-4 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-500 hover:bg-slate-50 dark:hover:bg-[#1f2937] transition-all group"
               >
                 <div className="w-16 h-16 rounded-[1rem] bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 overflow-hidden shadow-inner">
-                  {selectedUnit ? renderSlotImage(selectedUnit.image) : <Plus className="w-6 h-6 text-slate-400 group-hover:text-blue-500" />}
+                  {selectedUnit ? renderSlotImage(selectedUnit.images?.[0] || selectedUnit.image) : <Plus className="w-6 h-6 text-slate-400 group-hover:text-blue-500" />}
                 </div>
                 <div className="ml-4 text-left">
                   <div className={`font-bold text-lg ${selectedUnit ? 'text-slate-900 dark:text-white' : 'text-slate-400'}`}>
@@ -213,7 +213,7 @@ export default function LabView() {
                 <div className="p-8 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#1f2937]">
                   <div className="flex items-center gap-6">
                     <div className="w-24 h-24 rounded-[1.5rem] bg-white dark:bg-slate-800 flex items-center justify-center text-4xl shadow-md border-2 border-blue-500/30 overflow-hidden shrink-0">
-                      {renderSlotImage(selectedUnit.image, 'w-24 h-24', 'w-10 h-10')}
+                      {renderSlotImage(selectedUnit.images?.[0] || selectedUnit.image, 'w-24 h-24', 'w-10 h-10')}
                     </div>
                     <div>
                       <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
@@ -318,7 +318,7 @@ export default function LabView() {
                        className="bg-white dark:bg-[#1f2937] border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex flex-col items-center gap-3 hover:border-blue-500 hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                      >
                        <div className="w-16 h-16 rounded-[1rem] bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-600 overflow-hidden shrink-0">
-                          {renderSlotImage(unit.image)}
+                          {renderSlotImage(unit.images?.[0] || unit.image)}
                        </div>
                        <div>
                          <div className="font-bold text-sm text-slate-900 dark:text-white line-clamp-1">{unit.name}</div>

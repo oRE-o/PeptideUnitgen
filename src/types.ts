@@ -74,6 +74,7 @@ export interface AminoUnit {
   name: string;
   description: string;
   image?: string;
+  images?: string[];
   baseStats: CardStats;
   buffPattern: Vector2Int[]; // relative hex coordinates
   innateBuffs: Buff[];

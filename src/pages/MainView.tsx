@@ -31,15 +31,15 @@ export default function MainView() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {units.map((unit) => (
-            <Link key={unit.id} to={`/edit-unit/${unit.id}`} className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 overflow-hidden flex flex-col aspect-[3/4] border-2 border-slate-200 dark:border-slate-700 hover:border-blue-500/50 hover:-translate-y-1">
+            <Link key={unit.id} to={`/unit/${unit.id}`} className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 overflow-hidden flex flex-col aspect-[3/4] border-2 border-slate-200 dark:border-slate-700 hover:border-blue-500/50 hover:-translate-y-1">
               
               {/* Background Glow */}
               <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 via-transparent to-slate-100/50 dark:to-slate-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               
               {/* Image Section */}
               <div className="aspect-square w-full relative overflow-hidden bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center justify-center">
-                {unit.image?.startsWith('data:image') ? (
-                  <img src={unit.image} alt={unit.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" />
+                {(unit.images?.[0] || unit.image)?.startsWith('data:image') ? (
+                  <img src={unit.images?.[0] || unit.image} alt={unit.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" />
                 ) : (
                   <ImageIcon className="w-16 h-16 text-slate-400 dark:text-slate-600" />
                 )}

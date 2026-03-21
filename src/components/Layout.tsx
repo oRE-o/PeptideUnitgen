@@ -7,7 +7,7 @@ export default function Layout() {
     <div className="min-h-screen bg-slate-100 dark:bg-[#1f2937] text-slate-800 dark:text-slate-200 font-sans overflow-x-hidden transition-colors duration-200">
       <Navigation />
       
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+      <main className="container mx-auto px-4 md:px-8 py-8 max-w-[1600px] w-full">
         <div className="bg-white dark:bg-[#111827] rounded-xl p-6 md:p-8 shadow-sm border border-slate-200 dark:border-slate-700 transition-colors duration-200 min-h-[70vh]">
           <Outlet />
         </div>

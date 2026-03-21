@@ -6,6 +6,8 @@ import LabView from './pages/LabView';
 import EditUnit from './pages/EditUnit';
 import EditItem from './pages/EditItem';
 
+import UnitDetails from './pages/UnitDetails';
+
 function App() {
   return (
     <Routes>
@@ -13,6 +15,7 @@ function App() {
         <Route index element={<MainView />} />
         <Route path="items" element={<ItemList />} />
         <Route path="lab" element={<LabView />} />
+        <Route path="unit/:id" element={<UnitDetails />} />
         <Route path="edit-unit" element={<EditUnit />} />
         <Route path="edit-unit/:id" element={<EditUnit />} />
         <Route path="edit-item" element={<EditItem />} />

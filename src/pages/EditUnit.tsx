@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAppStore } from '../store';
 import { useTranslation } from '../i18n';
 import type { AminoUnit, CardStats, AttackType } from '../types';
-import { Save, Trash2, ArrowLeft, Hexagon, Image as ImageIcon } from 'lucide-react';
+import { Save, Trash2, ArrowLeft, Hexagon, ChevronLeft, ChevronRight, X, Plus } from 'lucide-react';
 import HexGrid from '../components/HexGrid';
 import { useRef } from 'react';
 
@@ -52,6 +52,7 @@ export default function EditUnit() {
     name: '',
     description: '',
     image: '',
+    images: [],
     baseStats: { ...defaultStats },
     buffPattern: [],
     innateBuffs: [],
@@ -62,7 +63,13 @@ export default function EditUnit() {
   const [activeTab, setActiveTab] = useState<'basic' | 'combat' | 'attack' | 'special' | 'buffs'>('basic');
 
   useEffect(() => {
-    if (existingUnit) setFormData(existingUnit);
+    if (existingUnit) {
+      const normalized = { ...existingUnit };
+      if (!normalized.images) {
+        normalized.images = normalized.image ? [normalized.image] : [];
+      }
+      setFormData(normalized);
+    }
   }, [existingUnit]);
 
   const handleStatChange = (stat: keyof CardStats, value: any) => {
@@ -84,14 +91,42 @@ export default function EditUnit() {
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    Array.from(files).forEach(file => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, image: reader.result as string }));
+        setFormData(prev => {
+          const updatedImages = [...(prev.images || []), reader.result as string];
+          return { ...prev, images: updatedImages, image: updatedImages[0] };
+        });
       };
       reader.readAsDataURL(file);
-    }
+    });
+    
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const moveImage = (index: number, direction: -1 | 1) => {
+    setFormData(prev => {
+      const newImages = [...(prev.images || [])];
+      if (index + direction < 0 || index + direction >= newImages.length) return prev;
+      
+      const temp = newImages[index];
+      newImages[index] = newImages[index + direction];
+      newImages[index + direction] = temp;
+      
+      return { ...prev, images: newImages, image: newImages[0] };
+    });
+  };
+
+  const removeImage = (index: number) => {
+    setFormData(prev => {
+      const newImages = [...(prev.images || [])];
+      newImages.splice(index, 1);
+      return { ...prev, images: newImages, image: newImages[0] || '' };
+    });
   };
 
   const TabButton = ({ id, label, icon: Icon }: { id: any, label: string, icon?: any }) => {
@@ -128,18 +163,38 @@ export default function EditUnit() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Top Profile Card */}
         <div className="bg-white dark:bg-[#1f2937] p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col md:flex-row gap-6">
-          <div className="flex flex-col items-center gap-3">
-            <div 
-              className="w-32 h-32 rounded-[1.5rem] bg-slate-50 dark:bg-[#111827] border-2 border-dashed border-blue-400/30 flex items-center justify-center text-5xl shadow-inner cursor-pointer hover:border-blue-500/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all overflow-hidden relative group"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {formData.image?.startsWith('data:image') ? (
-                <img src={formData.image} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                <ImageIcon className="w-10 h-10 text-slate-400" />
-              )}
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-white text-xs font-bold shadow-sm">{t('editu.upload')}</span>
+          <div className="flex flex-col gap-3 w-full md:w-auto">
+            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Images</span>
+            <div className="flex gap-3 overflow-x-auto hide-scrollbar items-center pb-2 max-w-full md:max-w-xs lg:max-w-sm">
+              {(formData.images || []).map((imgUrl, idx) => (
+                <div key={idx} className="relative w-24 h-24 shrink-0 rounded-[1rem] border-2 border-slate-200 dark:border-slate-700 overflow-hidden group">
+                  <img src={imgUrl} alt={`Unit-${idx}`} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-between p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button type="button" onClick={() => removeImage(idx)} className="self-end p-1 hover:bg-red-500 rounded-full text-white transition-colors bg-black/40">
+                      <X className="w-3 h-3" />
+                    </button>
+                    <div className="flex gap-2 mb-1">
+                      {idx > 0 && (
+                        <button type="button" onClick={() => moveImage(idx, -1)} className="p-1 hover:bg-blue-500 rounded-full text-white transition-colors bg-black/40">
+                          <ChevronLeft className="w-3 h-3" />
+                        </button>
+                      )}
+                      {idx < (formData.images?.length || 0) - 1 && (
+                        <button type="button" onClick={() => moveImage(idx, 1)} className="p-1 hover:bg-blue-500 rounded-full text-white transition-colors bg-black/40">
+                          <ChevronRight className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {idx === 0 && <div className="absolute top-0 left-0 bg-blue-500 text-white text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-br-lg shadow">Main</div>}
+                </div>
+              ))}
+              <div 
+                className="w-24 h-24 shrink-0 rounded-[1rem] bg-slate-50 dark:bg-[#111827] border-2 border-dashed border-blue-400/30 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-slate-400 group"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Plus className="w-6 h-6 mb-1 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                <span className="text-[10px] font-bold group-hover:text-blue-500 text-slate-400">Add Photo</span>
               </div>
             </div>
             <input 
@@ -147,6 +202,7 @@ export default function EditUnit() {
               ref={fileInputRef}
               className="hidden"
               accept="image/*"
+              multiple
               onChange={handleImageUpload}
             />
           </div>
